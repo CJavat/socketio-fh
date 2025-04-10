@@ -40,6 +40,22 @@ function App() {
     });
   }, [socket]);
 
+  const votar = (id: string) => {
+    socket.emit("votar-banda", id);
+  };
+
+  const borrarBanda = (id: string) => {
+    socket.emit("borrar-banda", id);
+  };
+
+  const cambiarNombre = (id: string, nombre: string) => {
+    socket.emit("cambiar-nombre-banda", { id, nombre });
+  };
+
+  const crearBanda = (nombre: string) => {
+    socket.emit("nueva-banda", { nombre });
+  };
+
   return (
     <div className="container">
       <div className="alert">
@@ -58,11 +74,16 @@ function App() {
 
       <div className="row">
         <div className="col-8">
-          <BandList data={bands} />
+          <BandList
+            data={bands}
+            votar={votar}
+            borrarBanda={borrarBanda}
+            cambiarNombre={cambiarNombre}
+          />
         </div>
 
         <div className="col-4">
-          <BandAdd />
+          <BandAdd crearBanda={crearBanda} />
         </div>
       </div>
     </div>
