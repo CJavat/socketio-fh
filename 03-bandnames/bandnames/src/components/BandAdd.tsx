@@ -1,17 +1,15 @@
 import { FormEvent, useState } from "react";
+import { useSocket } from "../hooks/useSocket";
 
-interface Props {
-  crearBanda: (nombre: string) => void;
-}
-
-export const BandAdd = ({ crearBanda }: Props) => {
+export const BandAdd = () => {
   const [valor, setValor] = useState("");
+  const { socket } = useSocket("http://localhost:8080");
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
 
     if (valor.trim().length >= 0) {
-      crearBanda(valor);
+      socket.emit("nueva-banda", { nombre: valor });
       setValor("");
     }
   };
