@@ -1,30 +1,27 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useContext, useEffect, useState } from "react";
+import { SocketContext } from "../context/SocketContext";
 
 import { Band } from "../interfaces";
 
-interface Props {
-  data: Band[];
-  votar: (id: string) => void;
-  borrarBanda: (id: string) => void;
-  cambiarNombre: (id: string, nombre: string) => void;
-}
+export const BandList = () => {
+  const [bands, setBands] = useState<Band[]>([]);
 
-export const BandList = ({
-  data,
-  votar,
-  borrarBanda,
-  cambiarNombre,
-}: Props) => {
-  const [bands, setBands] = useState(data);
+  const { socket } = useContext(SocketContext);
 
   useEffect(() => {
-    setBands(data);
-  }, [data]);
+    socket?.on("current-bands", (bands) => {
+      setBands(bands);
+    });
+
+    return () => {
+      socket?.off("current-bands");
+    };
+  }, [socket]);
 
   const cambioNombre = (event: ChangeEvent<HTMLInputElement>, id: string) => {
     const nuevoNombre = event.target.value;
 
-    setBands((bands) =>
+    setBands((bands: Band[]) =>
       bands.map((band) => {
         if (band.id === id) {
           band.name = nuevoNombre;
@@ -36,13 +33,19 @@ export const BandList = ({
   };
 
   const onPerdioFoco = (id: string, nombre: string) => {
-    console.log(id, nombre);
+    socket?.emit("cambiar-nombre-banda", { id, nombre });
+  };
 
-    cambiarNombre(id, nombre);
+  const votar = (id: string) => {
+    socket?.emit("votar-banda", id);
+  };
+
+  const borrarBanda = (id: string) => {
+    socket?.emit("borrar-banda", id);
   };
 
   const crearRows = () => {
-    return bands.map((band) => (
+    return bands.map((band: Band) => (
       <tr key={band.id}>
         <td>
           <button className="btn btn-primary" onClick={() => votar(band.id)}>

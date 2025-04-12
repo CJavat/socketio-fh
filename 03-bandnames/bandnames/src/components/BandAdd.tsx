@@ -1,15 +1,15 @@
-import { FormEvent, useState } from "react";
-import { useSocket } from "../hooks/useSocket";
+import { FormEvent, useContext, useState } from "react";
+import { SocketContext } from "../context/SocketContext";
 
 export const BandAdd = () => {
   const [valor, setValor] = useState("");
-  const { socket } = useSocket("http://localhost:8080");
+  const { socket } = useContext(SocketContext);
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
 
     if (valor.trim().length >= 0) {
-      socket.emit("nueva-banda", { nombre: valor });
+      socket?.emit("nueva-banda", { nombre: valor });
       setValor("");
     }
   };
