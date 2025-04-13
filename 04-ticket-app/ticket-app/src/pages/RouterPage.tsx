@@ -16,14 +16,18 @@ import { Cola } from "./Cola";
 import { Ingresar } from "./Ingresar";
 import { Escritorio } from "./Escritorio";
 import { CrearTicket } from "./CrearTicket";
+import { useContext } from "react";
+import { UIContext } from "../context/UIContext";
 
 const { Sider, Content } = Layout;
 
 export const RouterPage = () => {
+  const { ocultarMenu } = useContext(UIContext);
+
   return (
     <Router>
       <Layout style={{ height: "100vh" }}>
-        <Sider hidden={false}>
+        <Sider hidden={ocultarMenu} collapsedWidth={0} breakpoint="md">
           <div className="demo-logo-vertical" />
           <Menu
             theme="dark"
