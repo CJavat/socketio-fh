@@ -1,13 +1,22 @@
 import { DownloadOutlined } from "@ant-design/icons";
 import { Typography, Col, Row, Button } from "antd";
 import { useHideMenu } from "../hooks/useHideMenu";
+import { useContext, useState } from "react";
+import { SocketContext } from "../context/SocketContext";
+import { Ticket } from "../interfaces";
 const { Title, Text } = Typography;
 
 export const CrearTicket = () => {
   useHideMenu(true);
+  const { socket } = useContext(SocketContext);
+  const [ticket, setTicket] = useState<Ticket | null>(null);
 
   const nuevoTicket = () => {
-    console.log("Nuevo Ticket");
+    if (!socket) return;
+
+    socket.emit("solicitar-ticket", null, (ticket: Ticket) => {
+      setTicket(ticket);
+    });
   };
 
   return (
@@ -30,23 +39,25 @@ export const CrearTicket = () => {
         </Col>
       </Row>
 
-      <Row style={{ marginTop: 100 }}>
-        <Col span={18} offset={2}>
-          <div
-            style={{
-              textAlign: "center",
-              width: "100%",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <Text>Su número</Text>
-            <Text type="success" style={{ fontSize: 55 }}>
-              55
-            </Text>
-          </div>
-        </Col>
-      </Row>
+      {ticket && (
+        <Row style={{ marginTop: 100 }}>
+          <Col span={18} offset={2}>
+            <div
+              style={{
+                textAlign: "center",
+                width: "100%",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <Text>Su número</Text>
+              <Text type="success" style={{ fontSize: 55 }}>
+                {ticket.numero}
+              </Text>
+            </div>
+          </Col>
+        </Row>
+      )}
     </>
   );
 };
