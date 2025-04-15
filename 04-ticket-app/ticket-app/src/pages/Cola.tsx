@@ -3,6 +3,7 @@ import { useHideMenu } from "../hooks/useHideMenu";
 import { useContext, useEffect, useState } from "react";
 import { SocketContext } from "../context/SocketContext";
 import { Ticket } from "../interfaces";
+import { getUltimos } from "../helpers/getUltimos";
 
 const { Title, Text } = Typography;
 
@@ -24,6 +25,10 @@ export const Cola = () => {
       socket?.off("ticket-asignado");
     };
   }, [socket]);
+
+  useEffect(() => {
+    getUltimos().then((tickets) => setTickets(tickets));
+  }, []);
 
   return (
     <>
