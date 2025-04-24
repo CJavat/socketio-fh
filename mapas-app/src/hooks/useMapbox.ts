@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import mapboxgl, { Map } from "mapbox-gl";
+import mapboxgl, { Map, MapMouseEvent } from "mapbox-gl";
 import { v4 } from "uuid";
+import { Subject } from "rxjs";
 
 interface PuntoInicial {
   lng: number;
@@ -27,6 +28,10 @@ export const useMapbox = (puntoInicial: PuntoInicial) => {
   //* Referencia a los marcadores.
   const marcadores = useRef<Record<string, MarkerWithId>>({});
 
+  // Observables RXJS
+  const movimientoMarcador = useRef(new Subject());
+  const nuevoMarcador = useRef(new Subject());
+
   useEffect(() => {
     const map = new mapboxgl.Map({
       container: mapDiv.current as HTMLElement,
@@ -52,26 +57,54 @@ export const useMapbox = (puntoInicial: PuntoInicial) => {
     });
   }, []);
 
-  // Agregar marcadores cuando hago clicks
-  useEffect(() => {
-    mapa.current?.on("click", (event) => {
-      const { lng, lat } = event.lngLat;
+  // Funcion para agregar marcadores
+  const agregarMarcador = useCallback((event: MapMouseEvent) => {
+    const { lng, lat } = event.lngLat;
 
-      const marker = new mapboxgl.Marker({
-        draggable: true,
-        color: "black",
-      }) as MarkerWithId;
+    const marker = new mapboxgl.Marker({
+      draggable: true,
+      color: "black",
+    }) as MarkerWithId;
 
-      marker.id = v4(); //TODO: Si el marcardor ya tiene ID.
+    marker.id = v4(); //TODO: Si el marcardor ya tiene ID.
 
-      marker.setLngLat([lng, lat]).addTo(mapa.current!);
+    marker.setLngLat([lng, lat]).addTo(mapa.current!);
 
-      marcadores.current[marker.id] = marker;
+    // Asignamos el objeto de marcadores
+    marcadores.current[marker.id] = marker;
+
+    //TODO: Si el marcador tiene ID no emitir
+    nuevoMarcador.current.next({
+      id: marker.id,
+      lng,
+      lat,
+    });
+
+    // Escuchar movimientos del marcador
+    marker.on("drag", ({ target }) => {
+      const { id } = target;
+      const { lng, lat } = target.getLngLat();
+
+      // Emitir los cambios del marcador
+      movimientoMarcador.current.next({
+        id,
+        lng,
+        lat,
+      });
     });
   }, []);
 
+  // Agregar marcadores cuando hago clicks
+  useEffect(() => {
+    mapa.current?.on("click", agregarMarcador);
+  }, [agregarMarcador]);
+
   return {
+    agregarMarcador,
     coords,
+    marcadores,
+    nuevoMarcador$: nuevoMarcador.current,
+    movimientoMarcador$: movimientoMarcador.current,
     setRef,
   };
 };

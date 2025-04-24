@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useMapbox } from "../hooks/useMapbox";
 
 const puntoInicial = {
@@ -7,7 +8,27 @@ const puntoInicial = {
 };
 
 export const MapaPage = () => {
-  const { coords, setRef } = useMapbox(puntoInicial);
+  const {
+    agregarMarcador,
+    coords,
+    setRef,
+    nuevoMarcador$,
+    movimientoMarcador$,
+  } = useMapbox(puntoInicial);
+
+  // Nuevo Marcador
+  useEffect(() => {
+    nuevoMarcador$.subscribe((marcador) => {
+      //TODO: Nuevo marcador emitir.
+    });
+  }, [nuevoMarcador$]);
+
+  // Movimiento del marcador
+  useEffect(() => {
+    movimientoMarcador$.subscribe((marcador) => {
+      console.log(marcador);
+    });
+  }, [movimientoMarcador$]);
 
   return (
     <>
