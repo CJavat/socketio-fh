@@ -1,31 +1,30 @@
-
+const Marcadores = require("./marcadores");
 
 class Sockets {
+  constructor(io) {
+    this.io = io;
 
-    constructor( io ) {
+    this.marcadores = new Marcadores();
 
-        this.io = io;
+    this.socketEvents();
+  }
 
-        this.socketEvents();
-    }
+  socketEvents() {
+    this.io.on("connection", (socket) => {
+      socket.emit("marcadores-activos", this.marcadores.activos);
 
-    socketEvents() {
-        // On connection
-        this.io.on('connection', ( socket ) => {
+      socket.on("marcador-nuevo", (marcador) => {
+        this.marcadores.agregarMarcador(marcador);
 
-            // Escuchar evento: mensaje-to-server
-            socket.on('mensaje-to-server', ( data ) => {
-                console.log( data );
-                
-                this.io.emit('mensaje-from-server', data );
-            });
-            
-        
-        });
-    }
+        socket.broadcast.emit("marcador-nuevo", marcador);
+      });
 
-
+      socket.on("marcador-actualizado", (marcador) => {
+        this.marcadores.actualizarMarcador(marcador);
+        socket.broadcast.emit("marcador-actualizado", marcador);
+      });
+    });
+  }
 }
-
 
 module.exports = Sockets;

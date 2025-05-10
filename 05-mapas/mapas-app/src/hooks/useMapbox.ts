@@ -58,27 +58,28 @@ export const useMapbox = (puntoInicial: PuntoInicial) => {
   }, []);
 
   // Funcion para agregar marcadores
-  const agregarMarcador = useCallback((event: MapMouseEvent) => {
-    const { lng, lat } = event.lngLat;
+  const agregarMarcador = useCallback((event: MapMouseEvent, id?: string) => {
+    const { lng, lat } = event.lngLat || event;
 
     const marker = new mapboxgl.Marker({
       draggable: true,
       color: "black",
     }) as MarkerWithId;
 
-    marker.id = v4(); //TODO: Si el marcardor ya tiene ID.
+    marker.id = id ?? v4();
 
     marker.setLngLat([lng, lat]).addTo(mapa.current!);
 
     // Asignamos el objeto de marcadores
     marcadores.current[marker.id] = marker;
 
-    //TODO: Si el marcador tiene ID no emitir
-    nuevoMarcador.current.next({
-      id: marker.id,
-      lng,
-      lat,
-    });
+    if (!id) {
+      nuevoMarcador.current.next({
+        id: marker.id,
+        lng,
+        lat,
+      });
+    }
 
     // Escuchar movimientos del marcador
     marker.on("drag", ({ target }) => {
@@ -94,6 +95,11 @@ export const useMapbox = (puntoInicial: PuntoInicial) => {
     });
   }, []);
 
+  // Función para actualizar la ubicación del marcador
+  const actualizarPosicion = useCallback(({ id, lng, lat }) => {
+    marcadores.current[id].setLngLat([lng, lat]);
+  }, []);
+
   // Agregar marcadores cuando hago clicks
   useEffect(() => {
     mapa.current?.on("click", agregarMarcador);
@@ -106,5 +112,6 @@ export const useMapbox = (puntoInicial: PuntoInicial) => {
     nuevoMarcador$: nuevoMarcador.current,
     movimientoMarcador$: movimientoMarcador.current,
     setRef,
+    actualizarPosicion,
   };
 };
