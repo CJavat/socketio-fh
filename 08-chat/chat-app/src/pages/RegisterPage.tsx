@@ -1,37 +1,16 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { AuthContext } from "../context/AuthContext";
 
-interface LoginResponse {
-  ok: boolean;
-  token: string;
-  usuario: {
-    uid: string;
-    name: string;
-    email: string;
-  };
-}
-
-export const LoginPage = () => {
-  const { login } = useContext(AuthContext)!;
+export const Register = () => {
+  const { register } = useContext(AuthContext)!;
 
   const [form, setForm] = useState({
+    nombre: "Daniel Plascencia",
     email: "test1@test.com",
     password: "123456",
-    rememberme: true,
   });
-
-  useEffect(() => {
-    const email = localStorage.getItem("email");
-    if (email) {
-      setForm((form) => ({
-        ...form,
-        email,
-        rememberme: true,
-      }));
-    }
-  }, []);
 
   const onChange = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = target;
@@ -42,30 +21,23 @@ export const LoginPage = () => {
     });
   };
 
-  const toggleCheck = () => {
-    setForm({
-      ...form,
-      rememberme: !form.rememberme,
-    });
-  };
-
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    form.rememberme
-      ? localStorage.setItem("email", form.email)
-      : localStorage.removeItem("email");
-
-    const { email, password } = form;
-    const ok = (await login(email, password)) as unknown as LoginResponse;
+    const { nombre, email, password } = form;
+    const ok = await register(nombre, email, password);
 
     if (!ok) {
-      Swal.fire("ERROR", "Verifique el usuario y contraseaña", "error");
+      Swal.fire("ERROR", "Verifique el nombre, usuario o contraseaña", "error");
     }
   };
 
   const todoOk = () => {
-    return form.email.length > 0 && form.password.length > 0 ? true : false;
+    return form.nombre.length > 0 &&
+      form.email.length > 0 &&
+      form.password.length > 0
+      ? true
+      : false;
   };
 
   return (
@@ -73,7 +45,19 @@ export const LoginPage = () => {
       className="login100-form validate-form flex-sb flex-w"
       onSubmit={onSubmit}
     >
-      <span className="login100-form-title mb-3">Chat - Ingreso</span>
+      <span className="login100-form-title mb-3">Chat - Registro</span>
+
+      <div className="wrap-input100 validate-input mb-3">
+        <input
+          className="input100"
+          type="text"
+          name="nombre"
+          placeholder="Nombre"
+          value={form.nombre}
+          onChange={onChange}
+        />
+        <span className="focus-input100"></span>
+      </div>
 
       <div className="wrap-input100 validate-input mb-3">
         <input
@@ -100,22 +84,9 @@ export const LoginPage = () => {
       </div>
 
       <div className="row mb-3">
-        <div className="col" onClick={() => toggleCheck()}>
-          <input
-            className="input-checkbox100"
-            id="ckb1"
-            type="checkbox"
-            name="rememberme"
-            checked={form.rememberme}
-            // onChange={onChange}
-            readOnly
-          />
-          <label className="label-checkbox100">Recordarme</label>
-        </div>
-
         <div className="col text-right">
-          <Link to="/auth/register" className="txt1">
-            ¿Crear cuenta?
+          <Link to="/auth/login" className="txt1">
+            ¿Ya tienes cuenta?
           </Link>
         </div>
       </div>
@@ -126,7 +97,7 @@ export const LoginPage = () => {
           className="login100-form-btn"
           disabled={!todoOk()}
         >
-          Ingresar
+          Crear cuenta
         </button>
       </div>
     </form>

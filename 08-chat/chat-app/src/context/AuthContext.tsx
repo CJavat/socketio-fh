@@ -1,4 +1,5 @@
 import { createContext, useCallback, useState, type ReactNode } from "react";
+import { fetchConToken, fetchSinToken } from "../helpers/fetch";
 
 interface AuthState {
   uid: string | null;
@@ -10,8 +11,8 @@ interface AuthState {
 
 interface AuthContextType {
   auth: AuthState;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (name: string, email: string, password: string) => Promise<boolean>;
   verificarToken: () => void;
   logout: () => Promise<void>;
 }
@@ -35,15 +36,95 @@ const initialState: AuthState = {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [auth, setAuth] = useState<AuthState>(initialState);
 
-  const login = async (email: string, password: string) => {};
+  const login = async (email: string, password: string) => {
+    const resp = await fetchSinToken("login", { email, password }, "POST");
 
-  const register = async (
-    nombre: string,
-    email: string,
-    password: string
-  ) => {};
+    if (resp.ok) {
+      localStorage.setItem("token", resp.token);
 
-  const verificarToken = useCallback(() => {}, []);
+      const { usuario } = resp;
+      setAuth({
+        uid: usuario.uid,
+        checking: false,
+        logged: true,
+        name: usuario.name,
+        email: usuario.email,
+      });
+
+      console.log("Autenticado");
+    }
+
+    return resp.ok as boolean;
+  };
+
+  const register = async (nombre: string, email: string, password: string) => {
+    const resp = await fetchSinToken(
+      "login/new",
+      { nombre, email, password },
+      "POST"
+    );
+
+    console.log({ resp });
+
+    if (resp.ok) {
+      localStorage.setItem("token", resp.token);
+
+      const { usuario } = resp;
+      setAuth({
+        uid: usuario.uid,
+        checking: false,
+        logged: true,
+        name: usuario.name,
+        email: usuario.email,
+      });
+
+      console.log("Cuenta Creada");
+    }
+
+    return resp.ok as boolean;
+  };
+
+  const verificarToken = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setAuth({
+        uid: null,
+        checking: false,
+        logged: false,
+        name: null,
+        email: null,
+      });
+
+      return false;
+    }
+
+    const resp = await fetchConToken("login/renew");
+    if (resp.ok) {
+      localStorage.setItem("token", resp.token);
+
+      const { usuario } = resp;
+      setAuth({
+        uid: usuario.uid,
+        checking: false,
+        logged: true,
+        name: usuario.name,
+        email: usuario.email,
+      });
+
+      console.log("Autenticado");
+      return true;
+    } else {
+      setAuth({
+        uid: null,
+        checking: false,
+        logged: false,
+        name: null,
+        email: null,
+      });
+
+      return false;
+    }
+  }, []);
 
   const logout = async () => {};
 
