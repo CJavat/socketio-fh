@@ -4,7 +4,7 @@ import { fetchConToken, fetchSinToken } from "../helpers/fetch";
 interface AuthState {
   uid: string | null;
   checking: string | boolean;
-  logged: string | boolean;
+  logged: boolean;
   name: string | null;
   email: string | null;
 }
@@ -14,16 +14,12 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string) => Promise<boolean>;
   verificarToken: () => void;
-  logout: () => Promise<void>;
+  logout: () => void;
 }
 
 interface AuthProviderProps {
   children: ReactNode;
 }
-
-export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined
-);
 
 const initialState: AuthState = {
   uid: null,
@@ -32,6 +28,15 @@ const initialState: AuthState = {
   name: null,
   email: null,
 };
+
+export const AuthContext = createContext<AuthContextType>({
+  auth: initialState,
+  login: (email: string, password: string) => new Promise((res, rej) => false),
+  register: (name: string, email: string, password: string) =>
+    new Promise((res, rej) => false),
+  verificarToken: () => {},
+  logout: () => {},
+});
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [auth, setAuth] = useState<AuthState>(initialState);
@@ -47,11 +52,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         uid: usuario.uid,
         checking: false,
         logged: true,
-        name: usuario.name,
+        name: usuario.nombre,
         email: usuario.email,
       });
-
-      console.log("Autenticado");
     }
 
     return resp.ok as boolean;
@@ -64,8 +67,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       "POST"
     );
 
-    console.log({ resp });
-
     if (resp.ok) {
       localStorage.setItem("token", resp.token);
 
@@ -77,8 +78,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         name: usuario.name,
         email: usuario.email,
       });
-
-      console.log("Cuenta Creada");
     }
 
     return resp.ok as boolean;
@@ -110,8 +109,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         name: usuario.name,
         email: usuario.email,
       });
-
-      console.log("Autenticado");
       return true;
     } else {
       setAuth({
@@ -126,7 +123,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
-  const logout = async () => {};
+  const logout = async () => {
+    localStorage.removeItem("token");
+    setAuth({
+      uid: null,
+      checking: false,
+      logged: false,
+      name: null,
+      email: null,
+    });
+  };
 
   return (
     <AuthContext.Provider
