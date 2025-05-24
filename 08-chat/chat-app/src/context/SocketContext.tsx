@@ -2,7 +2,9 @@ import { createContext, type ReactNode, useContext, useEffect } from "react";
 import { Socket } from "socket.io-client"; // Asegúrate de tener esta importación
 import { useSocket } from "../hooks/useSocket";
 import { AuthContext } from "./AuthContext";
-
+import { ChatContext } from "./chat/ChatContext";
+import { types } from "../types/types";
+import { scrollToBottom } from "react-scroll/modules/mixins/animate-scroll";
 interface SocketContextProps {
   socket: Socket | null;
   online: boolean;
@@ -21,6 +23,7 @@ export const SocketProvider = ({ children }: Props) => {
     "http://localhost:8080"
   );
   const { auth } = useContext(AuthContext);
+  const { dispatch } = useContext(ChatContext);
 
   useEffect(() => {
     if (auth.logged) {
@@ -38,9 +41,21 @@ export const SocketProvider = ({ children }: Props) => {
     if (!socket) return;
 
     socket.on("lista-usuarios", (usuarios: any[]) => {
-      console.log("Usuarios recibidos:", usuarios);
+      dispatch({
+        type: types.usuariosCargados,
+        payload: usuarios,
+      });
     });
-  }, [socket]);
+  }, [socket, dispatch]);
+
+  useEffect(() => {
+    socket?.on("mensaje-personal", (mensaje) => {
+      dispatch({
+        type: types.nuevoMensaje,
+        payload: mensaje,
+      });
+    });
+  }, [socket, dispatch]);
 
   return (
     <SocketContext.Provider value={{ socket, online }}>

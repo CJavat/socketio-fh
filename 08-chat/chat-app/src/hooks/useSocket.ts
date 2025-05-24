@@ -17,6 +17,10 @@ export const useSocket = (serverPath: string) => {
       },
     });
 
+    socketTemp.on("connect_error", (err) => {
+      console.error("❌ Error al conectar:", err.message);
+    });
+
     setSocket(socketTemp);
   }, [serverPath]);
 

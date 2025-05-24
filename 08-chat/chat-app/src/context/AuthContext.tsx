@@ -1,5 +1,13 @@
-import { createContext, useCallback, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useState,
+  type ReactNode,
+} from "react";
 import { fetchConToken, fetchSinToken } from "../helpers/fetch";
+import { ChatContext } from "./chat/ChatContext";
+import { types } from "../types/types";
 
 interface AuthState {
   uid: string | null;
@@ -39,6 +47,7 @@ export const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const { dispatch } = useContext(ChatContext);
   const [auth, setAuth] = useState<AuthState>(initialState);
 
   const login = async (email: string, password: string) => {
@@ -131,6 +140,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       logged: false,
       name: null,
       email: null,
+    });
+
+    dispatch({
+      type: types.cerrarSesion,
     });
   };
 
