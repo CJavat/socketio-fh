@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         uid: usuario.uid,
         checking: false,
         logged: true,
-        name: usuario.name,
+        name: usuario.nombre,
         email: usuario.email,
       });
     }
@@ -106,7 +106,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         uid: usuario.uid,
         checking: false,
         logged: true,
-        name: usuario.name,
+        name: usuario.nombre,
         email: usuario.email,
       });
       return true;

@@ -1,26 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-interface ServerToClientEvents {
-  // Por ejemplo:
-  // message: (data: string) => void;
-}
-
-interface ClientToServerEvents {
-  // Por ejemplo:
-  // sendMessage: (msg: string) => void;
-}
-
-type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents> | null;
-
-export const useSocket = (
-  serverPath: string
-): {
-  socket: TypedSocket;
-  online: boolean;
-  conectarSocket: () => void;
-  desconectarSocket: () => void;
-} => {
+export const useSocket = (serverPath: string) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [online, setOnline] = useState(false);
 
@@ -48,7 +29,9 @@ export const useSocket = (
   }, [socket]);
 
   useEffect(() => {
-    socket?.on("connect", () => setOnline(true));
+    socket?.on("connection", () => {
+      setOnline(true);
+    });
   }, [socket]);
 
   useEffect(() => {
